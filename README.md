@@ -33,9 +33,32 @@ BLUE also integrates a **web-based RAG system**, enabling it to **search the int
   3. Integrate retrieved knowledge into its response generation.
 - Keeps BLUE’s knowledge base **fresh and contextually aware**.
 
-### 🧩 Configurable and Extensible
-- Default model: `llama-3.2-3B-instruct`
-- Swap configurations and weights easily:
-  ```bash
-  --model-config ./configs/llama-3.2-3B.yaml
-  --weights ./weights/llama-3.2-3B-instruct.bin
+###🧩 Configurable and Extensible
+
+BLUE is fully modular — users can easily switch between different model variants by modifying a simple Python configuration block.
+The default configuration uses LLaMA-3.2-3B-Instruct.
+
+# Example configuration for BLUE using LLaMA-3.2-3B-Instruct
+
+CONFIGURATIONS = {
+    "DIM": 3072,
+    "FFN_DIM": 8192,
+    "N_LAYERS": 28,
+    "N_HEADS": 24,
+    "N_KV_HEADS": 8,
+    "VOCAB_SIZE": 128256,
+    "NORM_EPS": 1e-5,
+    "ROPE_THETA": 500000,
+    "MAX_BATCH_SIZE": 4,
+    "MAX_SEQ_LEN": 6000,
+    "N_KV_HEAD_REP": 24 // 8,
+    "HEAD_DIM": 128
+}
+
+# Update tokenizer and weight paths for the chosen model
+tok_DIR = "Weights/3B-instruct/original/tokenizer.model"
+weight_DIR = "./Weights/3B-instruct/original/consolidated.00.pth"
+
+
+By adjusting these parameters and file paths, you can instantly switch between 1B, 3B, 70B, or even 405B model configurations — without altering the core logic of BLUE.
+This design makes it easy to experiment, scale, and fine-tune models of varying sizes using the same unified interface.
