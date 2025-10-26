@@ -10,7 +10,7 @@
 
 ## 🚀 Overview
 
-**BLUE AI** is a next-generation open framework built for **scalable LLM deployment** and **intelligent retrieval**.
+**BLUE AI** is a next-generation large language model, designed for scalability and adaptability across various model sizes of **LLAMA3**.
 
 At its core, BLUE is a **reimplementation of Meta’s LLaMA 3 family** of models — fully modular and designed to **scale effortlessly** from lightweight inference on consumer hardware to multi-GPU training or inference with large parameter sets.
 
