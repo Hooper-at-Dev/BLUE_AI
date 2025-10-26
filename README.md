@@ -1,8 +1,6 @@
 # 🔷 BLUE AI
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/<your-username>/BLUE-AI/ci.yml?branch=main)](https://github.com/<your-username>/BLUE-AI/actions)
 [![Model: LLaMA3](https://img.shields.io/badge/Model-LLAMA3-informational.svg)](https://ai.meta.com/llama/)
 [![RAG Enabled](https://img.shields.io/badge/RAG-Enabled-success.svg)](#retrieval-augmented-generation)
 
