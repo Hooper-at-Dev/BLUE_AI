@@ -35,4 +35,15 @@ BLUE also integrates a **web-based RAG system**, enabling it to **search the int
 
 ### 🧩 Configurable and Extensible - Default model: llama-3.2-3B-instruct - Swap configurations and weights easily:
 ```bash
- CONFIGURATIONS = { "DIM": 3072, "FFN_DIM": 8192, "N_LAYERS": 28, "N_HEADS": 24, "N_KV_HEADS": 8, "VOCAB_SIZE": 128256, "NORM_EPS": 1e-5, "ROPE_THETA": 500000, "MAX_BATCH_SIZE": 4, "MAX_SEQ_LEN": 6000, "N_KV_HEAD_REP": 24 // 8, "HEAD_DIM": 128 }
+ CONFIGURATIONS = { "DIM": 3072,
+                    "FFN_DIM": 8192,
+                    "N_LAYERS": 28,
+                    "N_HEADS": 24,
+                    "N_KV_HEADS": 8,
+                    "VOCAB_SIZE": 128256,
+                    "NORM_EPS": 1e-5,
+                    "ROPE_THETA": 500000,
+                    "MAX_BATCH_SIZE": 4,
+                    "MAX_SEQ_LEN": 6000,
+                    "N_KV_HEAD_REP": 24 // 8,
+                    "HEAD_DIM": 128 }
