@@ -47,6 +47,6 @@ BLUE also integrates a **web-based RAG system**, enabling it to **search the int
                     "MAX_SEQ_LEN": 6000,
                     "N_KV_HEAD_REP": 24 // 8,
                     "HEAD_DIM": 128 }
-```bash
+
 tok_DIR = "Weights/3B-instruct//original/tokenizer.model"    # Change the path with the actual path of the desired models downloaded weights.
 weight_DIR = "./Weights/3B-instruct/original/consolidated.00.pth"
