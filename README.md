@@ -1,6 +1,6 @@
 # 🔷 BLUE AI
 
-[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.10+-yellow.svg)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.7.1%2Bcu128-orange.svg)](https://pytorch.org/)
 [![Model: LLaMA3](https://img.shields.io/badge/Model-LLAMA3-informational.svg)](https://ai.meta.com/llama/)
 [![RAG Enabled](https://img.shields.io/badge/RAG-Enabled-success.svg)](#retrieval-augmented-generation)
