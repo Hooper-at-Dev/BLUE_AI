@@ -40,10 +40,13 @@ BLUE also integrates a **web-based RAG system**, enabling it to **search the int
                     "N_LAYERS": 28,
                     "N_HEADS": 24,
                     "N_KV_HEADS": 8,
-                    "VOCAB_SIZE": 128256,              #to change the model, just update the values with the desired models values.
+                    "VOCAB_SIZE": 128256,              # To change the model, just update the values with the desired models values.
                     "NORM_EPS": 1e-5,
                     "ROPE_THETA": 500000,
                     "MAX_BATCH_SIZE": 4,
                     "MAX_SEQ_LEN": 6000,
                     "N_KV_HEAD_REP": 24 // 8,
                     "HEAD_DIM": 128 }
+```bash
+tok_DIR = "Weights/3B-instruct//original/tokenizer.model"    # Change the path with the actual path of the desired models downloaded weights.
+weight_DIR = "./Weights/3B-instruct/original/consolidated.00.pth"
