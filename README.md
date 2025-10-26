@@ -40,7 +40,7 @@ BLUE also integrates a **web-based RAG system**, enabling it to **search the int
                     "N_LAYERS": 28,
                     "N_HEADS": 24,
                     "N_KV_HEADS": 8,
-                    "VOCAB_SIZE": 128256,
+                    "VOCAB_SIZE": 128256,              #to change the model, just update the values with the desired models values.
                     "NORM_EPS": 1e-5,
                     "ROPE_THETA": 500000,
                     "MAX_BATCH_SIZE": 4,
