@@ -29,7 +29,7 @@ BLUE also integrates a **web-based RAG system**, enabling it to **search the int
 ### 🌐 Web-Based RAG (Retrieval-Augmented Generation)
 - Optional RAG mode allows BLUE to:
   1. Query the web for real-time data.  
-  2. Retrieve and rank relevant documents.  
+  2. Retrieve relevant info.  
   3. Integrate retrieved knowledge into its response generation.
 - Keeps BLUE’s knowledge base **fresh and contextually aware**.
 
