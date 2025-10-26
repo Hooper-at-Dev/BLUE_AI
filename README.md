@@ -23,7 +23,7 @@ BLUE also integrates a **web-based RAG system**, enabling it to **search the int
 
 ### 💡 Scalable Model Architecture
 - Choose from **1B → 405B** parameter configurations.
-- Switch between models with a single config flag.
+- Switch between models with ease.
 - Built with **efficiency, extensibility**, and **hardware flexibility** in mind.
 
 ### 🌐 Web-Based RAG (Retrieval-Augmented Generation)
