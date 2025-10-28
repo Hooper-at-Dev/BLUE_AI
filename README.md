@@ -19,7 +19,8 @@ BLUE also integrates a **web-based RAG system**, enabling it to **search the int
 
 ---
 
-![BLUE AI Logo]([https://drive.google.com/file/d/1IimXodUoA3-dwGEaYjCuw8hYzl8Q3A37/view?usp=drive_link])
+![BLUE AI Logo](https://drive.google.com/uc?export=view&id=1IimXodUoA3-dwGEaYjCuw8hYzl8Q3A37)
+
 
 ## 🧠 Key Features
 
