@@ -9,6 +9,9 @@
 
 ---
 
+![BLUE AI Logo](https://drive.google.com/uc?export=view&id=1IimXodUoA3-dwGEaYjCuw8hYzl8Q3A37)
+
+
 ## 🚀 Overview
 
 **BLUE AI** is a next-generation large language model, designed for scalability and adaptability across various model sizes of **LLAMA3**.
@@ -18,9 +21,6 @@ At its core, BLUE is a **reimplementation of Meta’s LLaMA 3 family** of text m
 BLUE also integrates a **web-based RAG system**, enabling it to **search the internet in real time**, retrieve relevant context, and use that knowledge to craft accurate and up-to-date responses.
 
 ---
-
-![BLUE AI Logo](https://drive.google.com/uc?export=view&id=1IimXodUoA3-dwGEaYjCuw8hYzl8Q3A37)
-
 
 ## 🧠 Key Features
 
