@@ -26,7 +26,7 @@ def fetch_context_from_web(prompt, n_results=3):
     url = "https://serpapi.com/search.json"
     params = {
         "q": prompt,
-        "api_key": "API_KEY_HERE",  
+        "api_key": "f9311bac70fdd909edd0d6758c12f635298f3fafdc3716e3de313a51036c1fe3",  
         "num": n_results
     }
 
@@ -150,7 +150,7 @@ def weight_injector(my_model, weights_pth):
 
 
 def generate(
-    model, tokenizer, conversation_tokens, max_new_tok, top_k, device,
+    model, tokenizer, conversation_tokens, max_new_tok, top_k,
     context_len=2048, temp=0.9, eos_id=128001, eot_id=128009, eom_id=128008):
 
     model.eval()
@@ -208,5 +208,4 @@ def format_message(role, content):
         f"<|start_header_id|>{role}<|end_header_id|>\n"
         f"{content.strip()}\n"
         "<|eot_id|>\n"
-
     )
