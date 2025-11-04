@@ -46,7 +46,7 @@ BLUE also integrates a **web-based RAG system**, enabling it to **search the int
                     "VOCAB_SIZE": 128256,              # To change the model, just update the values with the desired models values.
                     "NORM_EPS": 1e-5,
                     "ROPE_THETA": 500000,
-                    "MAX_BATCH_SIZE": 4,
+                    "MAX_BATCH_SIZE": 2,
                     "MAX_SEQ_LEN": 10000,
                     "N_KV_HEAD_REP": 24 // 8,
                     "HEAD_DIM": 128 }
