@@ -49,9 +49,9 @@ def main():
     
     print(f"{RED}-" * 70)
     print(f"                              {BLUE_}Blue AI{RESET}")
-    print(f"                     {YELLOW}CREATOR: {GREEN}SARTHAK SANJEEV{RESET}")
+    print(f"                     {YELLOW}DEVELOPED BY: {GREEN}SARTHAK SANJEEV{RESET}")
     print(f"            {YELLOW}RUNNING ON:{RESET} {GREEN}{torch.cuda.get_device_name(0)}{RESET}")
-    print(f"{RED}-{RESET}" * 70)
+    print(f"{RED}-{RESET}" * 70)=8
     print(f"{YELLOW}Commands:")
     print("  - Type your message to chat")
     print("  - Type 'exit' or 'quit' to end the conversation")
@@ -127,7 +127,6 @@ def main():
             max_new_tok=50,
             top_k=80,
             temp=0.9,
-            device=device,
             context_len=2048
         )
         print(f"{BLUE_}Blue AI:{RESET} ", end="", flush=True)
