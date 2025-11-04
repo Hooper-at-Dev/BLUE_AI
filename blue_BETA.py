@@ -1,5 +1,5 @@
 from model import BLUE, Tokenizer
-from helper_functions import weight_injector, clean_serp_data, fetch_context_from_web, generate, format_message
+from helper_functions import weight_injector, cleaner, context_hunter, Chat, format_prompt
 import torch
 
 CONFIGURATIONS = {
@@ -11,8 +11,8 @@ CONFIGURATIONS = {
   "VOCAB_SIZE": 128256,
   "NORM_EPS": 1e-5,
   "ROPE_THETA": 500000,
-  "MAX_BATCH_SIZE": 4,
-  "MAX_SEQ_LEN": 6000,
+  "MAX_BATCH_SIZE": 2,
+  "MAX_SEQ_LEN": 10000,
   "N_KV_HEAD_REP": 24 // 8,
   "HEAD_DIM": 128
 }
@@ -51,7 +51,7 @@ def main():
     print(f"                              {BLUE_}Blue AI{RESET}")
     print(f"                     {YELLOW}DEVELOPED BY: {GREEN}SARTHAK SANJEEV{RESET}")
     print(f"            {YELLOW}RUNNING ON:{RESET} {GREEN}{torch.cuda.get_device_name(0)}{RESET}")
-    print(f"{RED}-{RESET}" * 70)=8
+    print(f"{RED}-{RESET}" * 70)
     print(f"{YELLOW}Commands:")
     print("  - Type your message to chat")
     print("  - Type 'exit' or 'quit' to end the conversation")
@@ -99,12 +99,12 @@ def main():
         
         if web_search_enabled:
             print(f"\n[Searching web for context]")
-            context_data = fetch_context_from_web(user_input, n_results=3)
-            context_data = clean_serp_data(context_data)
+            context_data = context_hunter(user_input, n_results=3)
+            context_data = cleaner(context_data)
             print(f"[Context retrieved: {len(context_data)} chars]\n")
             user_input = f"Use the following context to answer:\n{context_data}\n\nQuestion: {user_input}"
         
-        user_msg = format_message("user", user_input)
+        user_msg = format_prompt("user", user_input)
         user_tokens = tokenizer.encode(user_msg, bos=False, eos=False, allowed_special="all")
 
         conversation_tokens = torch.cat([
@@ -118,19 +118,20 @@ def main():
             conversation_tokens,
             torch.tensor([assistant_header_tokens], device=device)
         ], dim=1)
+
+        if conversation_tokens.shape[-1] >= CONFIGURATIONS["MAX_SEQ_LEN"]-50:
+            blue.reset_cache()
+            print(f"{RED}MEMORY LIMIT REACHED!{YELLOW} K_V_CACHE RESET{RESET}")
         
-        
-        conversation_tokens, assistant_response = generate(
+        conversation_tokens, assistant_response = Chat(
             model=blue,
             tokenizer=tokenizer,
             conversation_tokens=conversation_tokens,
             max_new_tok=50,
-            top_k=80,
-            temp=0.9,
+            top_k=100,
+            temp=0.7,
             context_len=2048
         )
-        print(f"{BLUE_}Blue AI:{RESET} ", end="", flush=True)
-        print(assistant_response)
         print()
 
 
