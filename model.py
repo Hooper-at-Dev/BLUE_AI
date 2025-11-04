@@ -19,7 +19,6 @@ from typing import (
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-# RoPE
 
 def calculate_angles(theeta, dim, seq_len):
     pos = 1/theeta**(torch.arange(0, dim, 2, device=device).float()/dim)
@@ -29,7 +28,6 @@ def calculate_angles(theeta, dim, seq_len):
     return unit_vecs
 
 def brodcast(unit_vecs, x):
-    # print(f"unit_vecs.shape: {unit_vecs.shape}\nX.shape: {x.shape[1], x.shape[-1]}")
     assert unit_vecs.shape == (x.shape[1], x.shape[-1])
     n_dim = x.ndim
     shape = [d if i == 1 or i == n_dim-1 else 1 for i,d in enumerate(x.shape)]
@@ -184,8 +182,9 @@ class BLUE(nn.Module):
 
         mask = None
         if seq_len > 1:
-            mask = torch.full((seq_len, seq_len), float("-inf"), device=tokens.device) 
-            mask = torch.triu(mask, diagonal=1)
+            total_len = start_pos + seq_len
+            mask = torch.full((seq_len, total_len), float("-inf"), device=tokens.device)
+            mask = torch.triu(mask, diagonal=1 + start_pos)
 
         for layer in self.layers:
             x = layer(x, freq, start_pos, mask )
