@@ -17,21 +17,6 @@ from typing import (
     Union,
 )
 
-CONFIGURATIONS = {
-  "DIM": 3072,
-  "FFN_DIM": 8192,
-  "N_LAYERS": 28,
-  "N_HEADS": 24,
-  "N_KV_HEADS": 8,
-  "VOCAB_SIZE": 128256,
-  "NORM_EPS": 1e-5,
-  "ROPE_THETA": 500000,
-  "MAX_BATCH_SIZE": 4,
-  "MAX_SEQ_LEN": 6000,
-  "N_KV_HEAD_REP": 24 // 8,
-  "HEAD_DIM": 128
-}
-
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 # RoPE
@@ -227,7 +212,7 @@ class Tokenizer:
             "<|start_header_id|>",
             "<|end_header_id|>",
             "<|reserved_special_token_4|>",
-            "<|eot_id|>",  # end of turn
+            "<|eot_id|>",  
         ] + [f"<|reserved_special_token_{i}|>" for i in range(5, self.no_reserved_special_tokens - 5)]
         
         self.special_tokens = {
