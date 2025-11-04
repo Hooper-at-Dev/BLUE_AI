@@ -47,7 +47,7 @@ BLUE also integrates a **web-based RAG system**, enabling it to **search the int
                     "NORM_EPS": 1e-5,
                     "ROPE_THETA": 500000,
                     "MAX_BATCH_SIZE": 4,
-                    "MAX_SEQ_LEN": 6000,
+                    "MAX_SEQ_LEN": 10000,
                     "N_KV_HEAD_REP": 24 // 8,
                     "HEAD_DIM": 128 }
 
