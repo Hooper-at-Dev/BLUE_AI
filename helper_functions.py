@@ -3,9 +3,10 @@ import requests
 import re
 import requests
 from bs4 import BeautifulSoup
+RESET = "\033[0m"
+BLUE_ = "\033[94m"
 
-
-def load_consolidated_pth_weights(pth_path):
+def load_weights(pth_path):
 
     checkpoint = torch.load(pth_path, map_location="cpu")
     if isinstance(checkpoint, dict):
@@ -22,11 +23,11 @@ def load_consolidated_pth_weights(pth_path):
     return params
 
 
-def fetch_context_from_web(prompt, n_results=3):
+def context_hunter(prompt, n_results=3):
     url = "https://serpapi.com/search.json"
     params = {
         "q": prompt,
-        "api_key": "f9311bac70fdd909edd0d6758c12f635298f3fafdc3716e3de313a51036c1fe3",  
+        "api_key": "xxxxxxxxxxxxxxxxxxxxxxxxxxxx",  
         "num": n_results
     }
 
@@ -65,7 +66,7 @@ def fetch_context_from_web(prompt, n_results=3):
     return "\n\n".join(contexts)
 
 
-def clean_serp_data(raw_data):
+def cleaner(raw_data):
 
     if isinstance(raw_data, (dict, list)):
         raw_data = str(raw_data)
@@ -87,7 +88,7 @@ def clean_serp_data(raw_data):
 
 def weight_injector(my_model, weights_pth):
 
-    params = load_consolidated_pth_weights(weights_pth)
+    params = load_weights(weights_pth)
     device = next(my_model.parameters()).device
     dtype = next(my_model.parameters()).dtype
 
@@ -149,16 +150,26 @@ def weight_injector(my_model, weights_pth):
     print(f"Model successfully loaded to: {device}")
 
 
-def generate(
-    model, tokenizer, conversation_tokens, max_new_tok, top_k,
-    context_len=2048, temp=0.9, eos_id=128001, eot_id=128009, eom_id=128008):
+def format_prompt(role, content):
+    return (
+        f"<|start_header_id|>{role}<|end_header_id|>\n"
+        f"{content.strip()}\n"
+        "<|eot_id|>\n"
+    )
 
+
+def Chat(
+    model, tokenizer, conversation_tokens, max_new_tok,
+    top_k=50, context_len=2048, temp=0.9,
+    eos_id=128001, eot_id=128009, eom_id=128008):
     model.eval()
     idx = conversation_tokens
     initial_len = idx.shape[1]
+
+    generated_text = ""
     
     for tok_no in range(max_new_tok):
-        if tok_no == 0:            
+        if tok_no == 0:
             if idx.shape[1] > context_len:
                 idx_cond = idx[:, -context_len:]
                 start_pos = max(0, idx.shape[1] - context_len)
@@ -168,9 +179,7 @@ def generate(
         else:
             idx_cond = idx[:, -1:]
             start_pos = idx.shape[1] - 1
-            
-        print(f"\rToken: {tok_no}/{max_new_tok}", end="")
-        
+
         with torch.inference_mode():
             logits = model(idx_cond, start_pos)
         logits = logits[:, -1, :]
@@ -183,29 +192,24 @@ def generate(
         logits /= max(temp, 1e-8)
         probs = torch.softmax(logits, dim=-1)
         preds = torch.multinomial(probs, 1)
-
         next_tok = preds.item()
 
         if next_tok in {eos_id, eot_id, eom_id}:
-            print(f"\n[Stop token {next_tok} reached at step {tok_no}]")
-            idx = torch.cat([idx, preds], dim=1)
+            print(f"\n\n[Stop token {next_tok} reached at step {tok_no+1}]\n")
             break
 
         idx = torch.cat([idx, preds], dim=1)
-    
-    print()
-    
+        token_text = tokenizer.decode([next_tok])
+        generated_text += token_text
+
+        if tok_no == 0:
+            print(f"{BLUE_}Blue:{RESET} ", end="", flush=True)
+        print(token_text, end="", flush=True)
+
     assistant_tokens = idx[:, initial_len:].squeeze().tolist()
     assistant_text = tokenizer.decode(assistant_tokens)
-    
     assistant_text = assistant_text.split("<|eot_id|>")[0].strip()
-    
+    if tok_no == max_new_tok - 1:
+        print(f"\n\n[MAX NEW TOKENS REACHED!]\n")
+
     return idx, assistant_text
-
-
-def format_message(role, content):
-    return (
-        f"<|start_header_id|>{role}<|end_header_id|>\n"
-        f"{content.strip()}\n"
-        "<|eot_id|>\n"
-    )
