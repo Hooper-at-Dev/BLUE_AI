@@ -27,7 +27,7 @@ def context_hunter(prompt, n_results=1):
     url = "https://serpapi.com/search.json"
     params = {
         "q": prompt,
-        "api_key": "f9311bac70fdd909edd0d6758c12f635298f3fafdc3716e3de313a51036c1fe3",  
+        "api_key": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",  
         "num": n_results
     }
 
@@ -220,3 +220,4 @@ def Chat(
     assistant_text = assistant_text.split("<|eot_id|>")[0].strip()
 
     return idx, assistant_text
+
