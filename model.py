@@ -196,7 +196,7 @@ class BLUE(nn.Module):
 
 class Tokenizer:
     no_reserved_special_tokens = 256
-    pat_str = r"(?i:'s|'t|'re|'ve|'m|'ll|'d)|[^\r\n\p{L}\p{N}]?\p{L}+|\p{N}{1,3}| ?[^\s\p{L}\p{N}]+[\r\n]*|\s*[\r\n]+|\s+(?!\S)|\s+"
+    pat_str = r"(?i:'s|'t|'re|'ve|'m|'ll|'d)|[^\r\n\p{L}\p{N}]?\p{L}+|\p{N}{1,3}| ?[^\s\p{L}\p{N}]+[\r\n]*|\s*[\r\n]+|\s+(?!\S)|\s+"  # noqa: E501
 
     def __init__(self, model_path):
         mergeable_ranks = load_tiktoken_bpe(model_path)
@@ -288,4 +288,3 @@ class Tokenizer:
                     slice_start = i
                     current_slice_len = 1
         yield s[slice_start:]     
-
