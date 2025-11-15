@@ -26,14 +26,14 @@ RED = "\033[91m"
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-tok_DIR = "Weights/3B-instruct//original/tokenizer.model"
-weight_DIR = "./Weights/3B-instruct/original/consolidated.00.pth"
+tok_DIR = "Weights/3B//original/tokenizer.model"
+weight_DIR = "./Weights/3B/original/consolidated.00.pth"
 
 blue = BLUE(CONFIGURATIONS).to(device)
 tokenizer = Tokenizer(tok_DIR)
 weight_injector(blue, weight_DIR)
 
-system_prompt = "You are a concise and factual AI assistant, and your name is Blue. You have to answer the Question asked by user."
+system_prompt = "You are a concise and factual AI assistant, and your name is Blue, no need to introduce yourself until asked. You have to answer the Question asked by user."
 
 def main():
     conversation = (
@@ -99,10 +99,10 @@ def main():
         
         if web_search_enabled:
             print(f"\n[Searching web for context]")
-            context_data = context_hunter(user_input, n_results=3)
+            context_data = context_hunter(user_input, n_results=1)
             context_data = cleaner(context_data)
             print(f"[Context retrieved: {len(context_data)} chars]\n")
-            user_input = f"Use the following context to answer:\n{context_data}\n\nQuestion: {user_input}"
+            user_input = f"Use the following web research (you did the web research) to answer:\n{context_data}\n\nQuestion: {user_input}"
         
         user_msg = format_prompt("user", user_input)
         user_tokens = tokenizer.encode(user_msg, bos=False, eos=False, allowed_special="all")
@@ -129,7 +129,7 @@ def main():
             conversation_tokens=conversation_tokens,
             max_new_tok=50,
             top_k=100,
-            temp=0.7,
+            temp=0.9,
             context_len=2048
         )
         print()
