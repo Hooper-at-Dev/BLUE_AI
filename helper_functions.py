@@ -23,11 +23,11 @@ def load_weights(pth_path):
     return params
 
 
-def context_hunter(prompt, n_results=3):
+def context_hunter(prompt, n_results=1):
     url = "https://serpapi.com/search.json"
     params = {
         "q": prompt,
-        "api_key": "xxxxxxxxxxxxxxxxxxxxxxxxxxxx",  
+        "api_key": "f9311bac70fdd909edd0d6758c12f635298f3fafdc3716e3de313a51036c1fe3",  
         "num": n_results
     }
 
@@ -90,7 +90,7 @@ def weight_injector(my_model, weights_pth):
 
     params = load_weights(weights_pth)
     device = next(my_model.parameters()).device
-    dtype = next(my_model.parameters()).dtype
+    dtype = torch.bfloat16
 
     my_model.tok_embedding.weight.data.copy_(
         params["tok_embeddings.weight"].to(device=device, dtype=dtype)
@@ -162,26 +162,32 @@ def Chat(
     model, tokenizer, conversation_tokens, max_new_tok,
     top_k=50, context_len=2048, temp=0.9,
     eos_id=128001, eot_id=128009, eom_id=128008):
+    
     model.eval()
     idx = conversation_tokens
     initial_len = idx.shape[1]
-
+    
+    if initial_len > context_len:
+        model.reset_cache()
+        idx_cond = idx[:, -context_len:]
+        start_pos = 0  
+    else:
+        idx_cond = idx
+        start_pos = 0
+    
     generated_text = ""
     
     for tok_no in range(max_new_tok):
         if tok_no == 0:
-            if idx.shape[1] > context_len:
-                idx_cond = idx[:, -context_len:]
-                start_pos = max(0, idx.shape[1] - context_len)
-            else:
-                idx_cond = idx
-                start_pos = 0
+            with torch.inference_mode():
+                logits = model(idx_cond, start_pos)
+            current_pos = start_pos + idx_cond.shape[1]
         else:
             idx_cond = idx[:, -1:]
-            start_pos = idx.shape[1] - 1
+            with torch.inference_mode():
+                logits = model(idx_cond, current_pos)
+            current_pos += 1
 
-        with torch.inference_mode():
-            logits = model(idx_cond, start_pos)
         logits = logits[:, -1, :]
 
         if top_k > 0:
@@ -206,10 +212,11 @@ def Chat(
             print(f"{BLUE_}Blue:{RESET} ", end="", flush=True)
         print(token_text, end="", flush=True)
 
+    if tok_no == max_new_tok - 1:
+        print(f"\n\n[MAX NEW TOKENS REACHED!]\n")
+
     assistant_tokens = idx[:, initial_len:].squeeze().tolist()
     assistant_text = tokenizer.decode(assistant_tokens)
     assistant_text = assistant_text.split("<|eot_id|>")[0].strip()
-    if tok_no == max_new_tok - 1:
-        print(f"\n\n[MAX NEW TOKENS REACHED!]\n")
 
     return idx, assistant_text
