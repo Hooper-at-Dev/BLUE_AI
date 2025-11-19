@@ -127,7 +127,7 @@ def main():
             model=blue,
             tokenizer=tokenizer,
             conversation_tokens=conversation_tokens,
-            max_new_tok=50,
+            max_new_tok=500,
             top_k=100,
             temp=0.9,
             context_len=2048
