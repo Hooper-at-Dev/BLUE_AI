@@ -27,7 +27,7 @@ def context_hunter(prompt, n_results=1):
     url = "https://serpapi.com/search.json"
     params = {
         "q": prompt,
-        "api_key": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",  
+        "api_key": "",  
         "num": n_results
     }
 
@@ -162,62 +162,75 @@ def Chat(
     model, tokenizer, conversation_tokens, max_new_tok,
     top_k=50, context_len=2048, temp=0.9,
     eos_id=128001, eot_id=128009, eom_id=128008):
-    
+
     model.eval()
     idx = conversation_tokens
+    assert idx.ndim == 2, "conversation_tokens must be shape (batch, seq_len)"
+    if idx.shape[0] != 1:
+        raise NotImplementedError("Chat currently supports batch size 1 only (provide a single conversation).")
+
     initial_len = idx.shape[1]
-    
+
+    if temp <= 0:
+        raise ValueError("temp must be greater than 0")
+
     if initial_len > context_len:
-        model.reset_cache()
         idx_cond = idx[:, -context_len:]
-        start_pos = 0  
+        start_pos = 0
     else:
         idx_cond = idx
         start_pos = 0
-    
+
     generated_text = ""
-    
+    current_pos = start_pos + idx_cond.shape[1]
+
     for tok_no in range(max_new_tok):
         if tok_no == 0:
             with torch.inference_mode():
                 logits = model(idx_cond, start_pos)
-            current_pos = start_pos + idx_cond.shape[1]
         else:
-            idx_cond = idx[:, -1:]
+            idx_cond_step = idx[:, -1:].to(idx.device)
             with torch.inference_mode():
-                logits = model(idx_cond, current_pos)
+                logits = model(idx_cond_step, current_pos)
             current_pos += 1
 
-        logits = logits[:, -1, :]
+        logits = logits[:, -1, :] 
 
-        if top_k > 0:
-            top_k_logits, _ = torch.topk(logits, top_k)
-            min_val = top_k_logits[:, -1:]
+        if top_k is not None and top_k > 0:
+            top_k = min(top_k, logits.size(-1))
+            top_k_vals, _ = torch.topk(logits, top_k, dim=-1)
+            min_val = top_k_vals[:, -1:].expand_as(logits)
             logits = torch.where(logits < min_val, float("-inf"), logits)
 
-        logits /= max(temp, 1e-8)
+        logits = logits / float(temp)
+
         probs = torch.softmax(logits, dim=-1)
-        preds = torch.multinomial(probs, 1)
-        next_tok = preds.item()
+        preds = torch.multinomial(probs, 1) 
+        next_tok = int(preds[0, 0])
 
         if next_tok in {eos_id, eot_id, eom_id}:
             print(f"\n\n[Stop token {next_tok} reached at step {tok_no+1}]\n")
+            idx = torch.cat([idx, preds], dim=1)
             break
 
         idx = torch.cat([idx, preds], dim=1)
+
         token_text = tokenizer.decode([next_tok])
         generated_text += token_text
 
         if tok_no == 0:
-            print(f"{BLUE_}Blue:{RESET} ", end="", flush=True)
+            try:
+                print(f"{BLUE_}Blue:{RESET} ", end="", flush=True)
+            except Exception:
+                print("Blue: ", end="", flush=True)
+
         print(token_text, end="", flush=True)
 
     if tok_no == max_new_tok - 1:
         print(f"\n\n[MAX NEW TOKENS REACHED!]\n")
 
-    assistant_tokens = idx[:, initial_len:].squeeze().tolist()
+    assistant_tokens = idx[0, initial_len:].tolist()
     assistant_text = tokenizer.decode(assistant_tokens)
     assistant_text = assistant_text.split("<|eot_id|>")[0].strip()
 
     return idx, assistant_text
-
