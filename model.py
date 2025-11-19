@@ -46,16 +46,13 @@ def RoPE(W_Q, W_K, unit_vecs):
 class Attention(nn.Module):
     def __init__(self, dim, n_heads, head_dim, n_kv_heads, n_kv_heads_reps, max_batch_size, max_seq_len):
         super().__init__()
+        assert head_dim % 2 == 0, "head_dim must be even for RoPE pairing"
         self.W_Q = nn.Linear(dim, n_heads * head_dim, bias=False)
         self.W_K = nn.Linear(dim, n_kv_heads * head_dim, bias=False)
         self.W_V = nn.Linear(dim, n_kv_heads * head_dim, bias=False)
 
-        self.register_buffer('CACHE_K', torch.zeros(
-            (max_batch_size, max_seq_len, n_kv_heads, head_dim))
-        )
-        self.register_buffer('CACHE_V', torch.zeros(
-            (max_batch_size, max_seq_len, n_kv_heads, head_dim))
-        )
+        self.register_buffer('CACHE_K', None)
+        self.register_buffer('CACHE_V', None)
 
         self.wo = nn.Linear(dim, dim)
 
@@ -64,9 +61,33 @@ class Attention(nn.Module):
         self.n_kv_heads = n_kv_heads
         self.n_kv_heads_reps = n_kv_heads_reps
 
+        self.max_batch_size = max_batch_size
+        self.max_seq_len = max_seq_len
 
-    def forward(self,x, freq=None, start_pos=0, mask=None):
+    def _ensure_cache(self, device, dtype):
+        need_alloc = False
+        if self.CACHE_K is None or self.CACHE_V is None:
+            need_alloc = True
+        else:
+            if self.CACHE_K.device != device or self.CACHE_K.dtype != dtype:
+                need_alloc = True
+            if self.CACHE_K.shape[0] < self.max_batch_size or self.CACHE_K.shape[1] < self.max_seq_len:
+                need_alloc = True
+
+        if need_alloc:
+            k_shape = (self.max_batch_size, self.max_seq_len, self.n_kv_heads, self.head_dim)
+            v_shape = (self.max_batch_size, self.max_seq_len, self.n_kv_heads, self.head_dim)
+            self.CACHE_K = torch.zeros(k_shape, dtype=dtype, device=device)
+            self.CACHE_V = torch.zeros(v_shape, dtype=dtype, device=device)
+
+    def forward(self, x, freq=None, start_pos=0, mask=None):
         bhz, seq_len, _ = x.shape
+        device = x.device
+        in_dtype = x.dtype
+
+        cache_dtype = torch.float16 if device.type == "cuda" else torch.float32
+
+        self._ensure_cache(device=device, dtype=cache_dtype)
 
         query = self.W_Q(x).view(bhz, seq_len, self.n_heads, self.head_dim)
         key = self.W_K(x).view(bhz, seq_len, self.n_kv_heads, self.head_dim)
@@ -74,22 +95,35 @@ class Attention(nn.Module):
 
         query, key = RoPE(query, key, freq)
 
-        self.CACHE_K[:bhz, start_pos:start_pos+seq_len] = key
-        self.CACHE_V[:bhz, start_pos:start_pos+seq_len] = value
+        self.CACHE_K[:bhz, start_pos:start_pos + seq_len].copy_(
+            key.to(device=self.CACHE_K.device, dtype=self.CACHE_K.dtype)
+        )
+        self.CACHE_V[:bhz, start_pos:start_pos + seq_len].copy_(
+            value.to(device=self.CACHE_V.device, dtype=self.CACHE_V.dtype)
+        )
 
-        keys = self.CACHE_K[:bhz, :start_pos+seq_len]
-        values = self.CACHE_V[:bhz, :start_pos+seq_len]
+        total_len = start_pos + seq_len
+        keys = self.CACHE_K[:bhz, :total_len]   
+        values = self.CACHE_V[:bhz, :total_len] 
 
-        keys = torch.repeat_interleave(input=keys, repeats=self.n_kv_heads_reps, dim=-2)
-        values = torch.repeat_interleave(input=values, repeats=self.n_kv_heads_reps, dim=-2)
+        if self.n_kv_heads_reps != 1:
+            keys = torch.repeat_interleave(keys, repeats=self.n_kv_heads_reps, dim=2)
+            values = torch.repeat_interleave(values, repeats=self.n_kv_heads_reps, dim=2)
 
-        queries = query.transpose(1,2)
-        keys = keys.transpose(1,2)
-        values = values.transpose(1,2)
-        
+        queries = query.transpose(1, 2)  
+        keys = keys.transpose(1, 2)      
+        values = values.transpose(1, 2)  
+
+        queries = queries.to(dtype=cache_dtype)
+        keys = keys.to(dtype=cache_dtype)
+        values = values.to(dtype=cache_dtype)
+
+        if mask is not None:
+            mask = mask.to(dtype=queries.dtype, device=queries.device)
+
         out = F.scaled_dot_product_attention(queries, keys, values, attn_mask=mask)
-        out = out.transpose(1,2).contiguous().view(bhz, seq_len, -1)
-
+        out = out.transpose(1, 2).contiguous().view(bhz, seq_len, -1)
+        out = out.to(dtype=in_dtype)
         return self.wo(out)
 
     
@@ -168,11 +202,12 @@ class BLUE(nn.Module):
         )
     
     def reset_cache(self):
-        for name, module in self.named_modules():
-            if hasattr(module, "CACHE_K"):
-                module.CACHE_K.zero_()
-            if hasattr(module, "CACHE_V"):
-                module.CACHE_V.zero_()
+        for module in self.modules():
+            if hasattr(module, "CACHE_K") and module.CACHE_K is not None:
+                module.CACHE_K = module.CACHE_K.clone().zero_()
+            if hasattr(module, "CACHE_V") and module.CACHE_V is not None:
+                module.CACHE_V = module.CACHE_V.clone().zero_()
+
 
     
     def forward(self, tokens, start_pos):
